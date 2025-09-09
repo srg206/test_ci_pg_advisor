@@ -1,5 +1,0 @@
-name: flight_status_summary
-interval_seconds: 10
-jitter_seconds: 5
-batch_size: 1
-enabled: false

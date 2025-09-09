@@ -1,5 +1,0 @@
-name: route_revenue_7d
-interval_seconds: 10
-jitter_seconds: 1
-batch_size: 10
-enabled: true

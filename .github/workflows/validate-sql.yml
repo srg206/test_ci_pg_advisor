@@ -26,6 +26,8 @@ jobs:
         
     - name: Validate SQL files
       run: |
+        HAS_WARNINGS=false
+        
         find . -name '*.sql' | while read -r sqlfile; do
           echo "Validating $sqlfile"
           
@@ -37,12 +39,24 @@ jobs:
             -d "$json_payload")
           
           overall_valid=$(echo "$response" | jq -r '.overall_valid')
+          query_rules=$(echo "$response" | jq -r '.query_rules | length')
           
           if [ "$overall_valid" = "true" ]; then
-            echo "✅ Validation passed for $sqlfile"
+            if [ "$query_rules" -gt 0 ]; then
+              echo "::warning file=$sqlfile::Query has $query_rules optimization suggestions"
+              echo "🟡 Validation passed with warnings for $sqlfile"
+              HAS_WARNINGS=true
+            else
+              echo "✅ Validation passed for $sqlfile"
+            fi
           else
             echo "❌ Validation failed for $sqlfile"
             echo "$response" | jq .
             exit 1
           fi
         done
+        
+        if [ "$HAS_WARNINGS" = "true" ]; then
+          echo "::warning::Some queries have optimization suggestions"
+          exit 1
+        fi
