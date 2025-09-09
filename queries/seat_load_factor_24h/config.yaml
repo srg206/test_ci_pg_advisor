@@ -1,0 +1,5 @@
+name: seat_load_factor_24h
+interval_seconds: 65
+jitter_seconds: 1
+batch_size: 1
+enabled: false

@@ -1,0 +1,5 @@
+name: tickets_per_airport
+interval_seconds: 60
+jitter_seconds: 10
+batch_size: 1
+enabled: false

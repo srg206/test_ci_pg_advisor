@@ -1,0 +1,5 @@
+name: synthetic_insert_cycle
+interval_seconds: 40
+jitter_seconds: 5
+batch_size: 1
+enabled: false
