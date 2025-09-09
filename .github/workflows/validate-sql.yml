@@ -26,7 +26,8 @@ jobs:
         
     - name: Validate SQL files
       run: |
-        HAS_WARNINGS=false
+        FAILED_VALIDATION=false
+        HAS_QUERY_RULES=false
         
         find . -name '*.sql' | while read -r sqlfile; do
           echo "Validating $sqlfile"
@@ -41,22 +42,25 @@ jobs:
           overall_valid=$(echo "$response" | jq -r '.overall_valid')
           query_rules=$(echo "$response" | jq -r '.query_rules | length')
           
-          if [ "$overall_valid" = "true" ]; then
-            if [ "$query_rules" -gt 0 ]; then
-              echo "::warning file=$sqlfile::Query has $query_rules optimization suggestions"
-              echo "🟡 Validation passed with warnings for $sqlfile"
-              HAS_WARNINGS=true
-            else
-              echo "✅ Validation passed for $sqlfile"
-            fi
-          else
+          if [ "$overall_valid" = "false" ]; then
             echo "❌ Validation failed for $sqlfile"
             echo "$response" | jq .
-            exit 1
+            FAILED_VALIDATION=true
+          elif [ "$query_rules" -gt 0 ]; then
+            echo "::warning file=$sqlfile::Query has $query_rules optimization suggestions"
+            echo "🟡 Validation passed with query rules for $sqlfile"
+            echo "Query rules details:"
+            echo "$response" | jq '.query_rules'
+            HAS_QUERY_RULES=true
+          else
+            echo "✅ Validation passed for $sqlfile"
           fi
         done
         
-        if [ "$HAS_WARNINGS" = "true" ]; then
-          echo "::warning::Some queries have optimization suggestions"
+        if [ "$FAILED_VALIDATION" = "true" ]; then
+          echo "::error::Some queries failed validation"
+          exit 1
+        elif [ "$HAS_QUERY_RULES" = "true" ]; then
+          echo "::error::Some queries have optimization suggestions"
           exit 1
         fi
